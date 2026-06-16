@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/andrejskocnevs -maxdepth 3 -type f \\\\\\( -name \"*.jpg\" -o -name \"*.png\" -o -name \"*.webp\" \\\\\\) -path \"*personal*\" 2>/dev/null | head -10)",
+      "Read(//Users/andrejskocnevs/**)",
+      "Bash(python3)"
+    ]
+  }
+}

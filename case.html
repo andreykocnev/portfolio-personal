@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Study — Andrey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff;
+      --fg: #0d0d0d;
+      --muted: #767676;
+      --border: rgba(13,13,13,0.1);
+      --font: 'DM Sans', system-ui, sans-serif;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --g: clamp(20px, 4vw, 72px);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg); color: var(--fg);
+      line-height: 1.5; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+    }
+    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar-thumb { background: var(--fg); }
+
+    /* ── LOADER ── */
+    .loader {
+      position: fixed; inset: 0; background: var(--fg); z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    .loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+    .loader-count { text-align: center; }
+    .loader-num {
+      display: block; font-size: 56px; font-weight: 700;
+      letter-spacing: -0.04em; color: var(--bg); line-height: 1;
+    }
+    .loader-bar {
+      width: 140px; height: 1px; background: rgba(255,255,255,0.14);
+      margin: 14px auto 0; overflow: hidden;
+    }
+    .loader-bar-fill { height: 100%; background: rgba(255,255,255,0.55); width: 0; }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 99;
+      padding: 20px var(--g);
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.4s, border-color 0.4s;
+      border-bottom: 1px solid transparent;
+    }
+    .nav.scrolled {
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-color: var(--border);
+    }
+    .nav-back {
+      font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--fg); text-decoration: none;
+      display: flex; align-items: center; gap: 8px; transition: opacity 0.2s;
+    }
+    .nav-back:hover { opacity: 0.45; }
+    .nav-right { display: flex; gap: 24px; align-items: center; list-style: none; }
+    .nav-right a {
+      font-size: 12px; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--fg); text-decoration: none; transition: opacity 0.2s;
+    }
+    .nav-right a:hover { opacity: 0.4; }
+
+    /* ── REVEAL ── */
+    .r {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.85s var(--ease), transform 0.85s var(--ease);
+    }
+    .r.in { opacity: 1; transform: translateY(0); }
+    .rl { overflow: hidden; display: block; padding-bottom: 0.12em; }
+    .rl span { display: block; transform: translateY(106%); transition: transform 0.92s var(--ease); }
+    .rl.in span { transform: translateY(0); }
+
+    /* ── PLACEHOLDERS ── */
+    .ph {
+      width: 100%; height: 100%; min-height: 180px;
+      background: repeating-linear-gradient(
+        -45deg, #ebebeb 0, #ebebeb 1px, #f5f5f5 0, #f5f5f5 14px
+      );
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+    }
+    .ph-label {
+      font-family: 'Courier New', monospace; font-size: 10px; color: #aaa;
+      letter-spacing: 0.1em; text-align: center; text-transform: uppercase;
+      padding: 0 20px; line-height: 1.7;
+    }
+
+    /* ── CASE HERO ── */
+    .c-hero { padding-top: 72px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
+    .c-hero-left {
+      display: flex; flex-direction: column;
+      padding: clamp(32px, 4vw, 56px) var(--g) clamp(36px, 5vh, 64px);
+    }
+    .c-hero-client { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 22px; }
+    .c-hero-title {
+      font-size: clamp(38px, 5.5vw, 88px);
+      font-weight: 700; letter-spacing: -0.03em; line-height: 0.97;
+      margin-bottom: 18px; white-space: normal;
+    }
+    .c-hero-sub { font-size: clamp(15px, 1.4vw, 19px); font-weight: 300; line-height: 1.55; color: var(--muted); max-width: 480px; }
+    .c-hero-imgs { display: grid; grid-template-columns: 1fr 1fr; }
+    .c-hero-img { overflow: hidden; aspect-ratio: 16/9; }
+    .c-hero-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .c-hero-img:first-child { border-right: 1px solid var(--border); }
+    .c-hero-img .ph { height: 100%; min-height: auto; }
+
+    /* ── META BAR ── */
+    .c-meta {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .c-meta-item {
+      padding: 24px var(--g); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .c-meta-item:last-child { border-right: none; }
+    .c-meta-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .c-meta-val { font-size: 14px; font-weight: 500; }
+
+    /* ── TEXT SECTIONS ── */
+    .c-section {
+      padding: clamp(48px, 6vw, 88px) var(--g);
+      border-bottom: 1px solid var(--border);
+    }
+    .c-section.no-border-bottom { border-bottom: none; }
+    .c-section-inner {
+      display: grid; grid-template-columns: 200px 1fr;
+      gap: clamp(28px, 5vw, 96px); align-items: start;
+    }
+    .c-sec-label {
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); padding-top: 6px; position: sticky; top: 90px;
+    }
+    .c-sec-body {
+      font-size: clamp(15px, 1.45vw, 19px); font-weight: 300;
+      line-height: 1.75; color: var(--muted);
+    }
+    .c-sec-body strong { color: var(--fg); font-weight: 500; }
+
+    /* ── IMAGE / VIDEO BANNER ── */
+    .c-banner {
+      width: 100%; height: clamp(260px, 40vw, 580px);
+      overflow: hidden; border-bottom: 1px solid var(--border);
+    }
+    .c-banner .ph { height: 100%; min-height: auto; }
+
+    /* ── VIDEO SECTION ── */
+    .c-video-section { overflow: hidden; }
+    .c-video-section iframe {
+      width: 100%; aspect-ratio: 16/9; display: block;
+      border: none;
+    }
+
+    /* ── VISUAL SYSTEM SLIDER ── */
+    .c-slider-section { border-bottom: none; }
+    .c-slider-wrap { position: relative; overflow: hidden; }
+    .c-slider-btn {
+      position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+      width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.88); cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, color 0.2s; font-family: var(--font); color: var(--fg);
+    }
+    .c-slider-btn:hover { background: var(--fg); color: var(--bg); }
+    #sl-prev { left: 16px; }
+    #sl-next { right: 16px; }
+    .c-slider {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+      scrollbar-width: none; cursor: grab; gap: 10px; padding: 0 10px;
+    }
+    .c-slider:active { cursor: grabbing; }
+    .c-slider::-webkit-scrollbar { display: none; }
+    .c-slide {
+      flex: 0 0 calc(50% - 10px); scroll-snap-align: start;
+      aspect-ratio: 16/9; overflow: hidden;
+    }
+    .c-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .c-slide-2col {
+      flex: 0 0 calc(50% - 10px); scroll-snap-align: start;
+      aspect-ratio: 16/9; overflow: hidden;
+    }
+    .c-slide-2col img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .c-slider-dots { display: flex; gap: 6px; padding: 20px var(--g); justify-content: center; align-items: center; }
+    .c-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #ccc; cursor: pointer; transition: background 0.2s, transform 0.2s;
+      border: none; padding: 0; flex-shrink: 0;
+    }
+    .c-dot.active { background: #0d0d0d; transform: scale(1.25); }
+
+    /* ── OUTCOMES ── */
+    .c-ach {
+      padding: clamp(48px, 6vw, 88px) var(--g) clamp(24px, 3vw, 44px);
+      border-bottom: none;
+    }
+    }
+    .c-ach-item:last-child { border-bottom: none; }
+    .c-ach-inner {
+      display: grid; grid-template-columns: 200px 1fr;
+      gap: clamp(28px, 5vw, 96px); align-items: start;
+    }
+    .c-ach-list { list-style: none; }
+    .c-ach-item {
+      padding: 18px 0; border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: 28px 1fr; gap: 18px; align-items: baseline;
+    }
+    .c-ach-item:first-child { border-top: 1px solid var(--border); }
+    .c-ach-num { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+    .c-ach-text { font-size: clamp(14px, 1.35vw, 18px); font-weight: 400; line-height: 1.55; }
+    .c-ach-text strong { font-weight: 600; }
+
+    /* ── MORE CASES SLIDER ── */
+    .c-more { background: var(--bg); border-top: none; margin-top: 0; }
+    .c-more-hd {
+      padding: clamp(28px, 4vw, 48px) var(--g) clamp(18px, 2.5vw, 28px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .c-more-h1 {
+      font-size: clamp(40px, 5.2vw, 76px);
+      font-weight: 700; letter-spacing: -0.035em; line-height: 0.97;
+    }
+    .c-more-nav { display: flex; gap: 8px; }
+    .c-more-btn {
+      width: 40px; height: 40px; border: 1px solid var(--border);
+      background: transparent; cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, color 0.2s; color: var(--fg); font-family: var(--font);
+    }
+    .c-more-btn:hover { background: var(--fg); color: var(--bg); }
+    .c-more-slider {
+      display: flex; overflow-x: auto; scrollbar-width: none; cursor: grab;
+      border-bottom: 1px solid var(--border);
+    }
+    .c-more-slider::-webkit-scrollbar { display: none; }
+    .c-more-slider:active { cursor: grabbing; }
+    .c-more-card {
+      flex: 0 0 50%; min-width: 0;
+      display: flex; flex-direction: column; text-decoration: none; color: var(--fg);
+      border-right: 1px solid var(--border); border-top: 1px solid var(--border);
+      overflow: hidden; transition: background 0.22s;
+    }
+    .c-more-card:hover { background: rgba(13,13,13,0.03); }
+    .c-more-img { overflow: hidden; aspect-ratio: 16/9; flex-shrink: 0; }
+    .c-more-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.65s var(--ease); }
+    .c-more-card:hover .c-more-img img { transform: scale(1.04); }
+    .c-more-cap {
+      padding: clamp(16px, 2vw, 24px) var(--g) clamp(20px, 2.5vw, 28px);
+      display: flex; flex-direction: column; gap: 6px; flex: 1;
+      border-top: 1px solid var(--border);
+    }
+    .c-more-cat { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .c-more-title { font-size: clamp(18px, 1.8vw, 28px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; }
+    .c-more-desc { font-size: clamp(13px, 1.1vw, 15px); font-weight: 300; color: var(--muted); line-height: 1.55; margin-top: 2px; }
+
+    /* ── CONTACT FORM (dark) ── */
+    .c-contact {
+      background: var(--fg); color: var(--bg);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .c-contact-inner {
+      display: grid; grid-template-columns: 1fr 1.6fr;
+      gap: clamp(40px, 6vw, 110px); align-items: start;
+      padding: clamp(60px, 9vw, 130px) var(--g) clamp(60px, 9vw, 120px);
+    }
+    .c-contact-left { position: sticky; top: 80px; }
+    .c-contact-h2 {
+      font-size: clamp(40px, 5.2vw, 64px);
+      font-weight: 700; letter-spacing: -0.035em; line-height: 0.97; margin-bottom: 18px;
+    }
+    .c-contact-sub {
+      font-size: clamp(13px, 1.1vw, 15px); font-weight: 300;
+      color: rgba(255,255,255,0.5); line-height: 1.7;
+    }
+    .c-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 28px; }
+    .fg { display: flex; flex-direction: column; gap: 6px; }
+    .fg.full { grid-column: 1 / -1; }
+    .fg label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+    .fg input, .fg textarea, .fg select {
+      font-family: var(--font); font-size: 15px; color: var(--bg);
+      background: transparent; border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.18);
+      padding: 12px 0; outline: none; width: 100%;
+      transition: border-color 0.2s; appearance: none; -webkit-appearance: none;
+    }
+    .fg input:focus, .fg textarea:focus, .fg select:focus { border-color: rgba(255,255,255,0.7); }
+    .fg input::placeholder, .fg textarea::placeholder { color: rgba(255,255,255,0.2); }
+    .fg textarea { resize: vertical; min-height: 88px; }
+    .fg select option { color: var(--fg); background: var(--bg); }
+    .form-foot { grid-column: 1 / -1; display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-top: 6px; }
+    .btn-white {
+      font-family: var(--font); font-size: 12px; font-weight: 500;
+      letter-spacing: 0.07em; text-transform: uppercase; text-decoration: none;
+      padding: 14px 26px; border: 1px solid rgba(255,255,255,0.5); color: var(--bg);
+      background: transparent; cursor: pointer;
+      transition: background 0.22s, border-color 0.22s; display: inline-block;
+    }
+    .btn-white:hover { background: rgba(255,255,255,0.1); border-color: var(--bg); }
+    .form-note { font-size: 12px; color: rgba(255,255,255,0.35); line-height: 1.55; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .c-hero-imgs { grid-template-columns: 1fr; }
+      .c-hero-img:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+      .c-hero-img-2 { display: none; }
+      .c-section-inner, .c-ach-inner { grid-template-columns: 1fr; gap: 16px; }
+      .c-sec-label { position: static; margin-bottom: 8px; }
+      .c-slide-2col { flex: 0 0 80%; }
+      .c-more-card { flex: 0 0 80%; }
+      .c-contact-inner { grid-template-columns: 1fr; gap: 40px; }
+      .c-contact-left { position: static; }
+      .c-form { grid-template-columns: 1fr; }
+      .fg.full, .form-foot { grid-column: 1; }
+    }
+    @media (max-width: 900px) {
+      .c-slider { gap: 0; padding: 0; }
+      .c-slide, .c-slide-2col { flex: 0 0 100%; }
+    }
+    @media (max-width: 560px) {
+      .c-hero-title { font-size: clamp(32px, 9vw, 56px); white-space: normal; }
+      .c-more-card { flex: 0 0 92%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-count">
+    <span class="loader-num" id="loader-num">0</span>
+    <div class="loader-bar"><div class="loader-bar-fill" id="loader-bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a href="index.html#portfolio" class="nav-back">← All work</a>
+  <ul class="nav-right">
+    <li><a href="index.html#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ─────────────────────────────── -->
+<section class="c-hero" data-screen-label="Hero">
+  <div class="c-hero-left">
+    <h1 class="c-hero-title"><span class="rl"><span id="c-title-full"></span></span></h1>
+    <p class="c-hero-sub r" id="c-subtitle"></p>
+  </div>
+  <div class="c-meta r">
+    <div class="c-meta-item"><span class="c-meta-label">Client</span><span class="c-meta-val" id="m-client">—</span></div>
+    <div class="c-meta-item"><span class="c-meta-label">Category</span><span class="c-meta-val" id="m-cat">—</span></div>
+    <div class="c-meta-item"><span class="c-meta-label">Year</span><span class="c-meta-val" id="m-year">—</span></div>
+  </div>
+  <div class="c-hero-imgs r" id="c-hero-imgs">
+    <!-- populated by JS -->
+  </div>
+</section>
+
+<!-- ── BUSINESS CHALLENGE ────────────────── -->
+<div class="c-section r" data-screen-label="Business Challenge">
+  <div class="c-section-inner">
+    <span class="c-sec-label">Business challenge</span>
+    <p class="c-sec-body" id="c-task"></p>
+  </div>
+</div>
+
+<!-- ── SOLUTION ──────────────────────────── -->
+<div class="c-section no-border-bottom r" data-screen-label="Solution">
+  <div class="c-section-inner">
+    <span class="c-sec-label">Solution</span>
+    <p class="c-sec-body" id="c-built"></p>
+  </div>
+</div>
+
+<!-- ── VISUAL SYSTEM SLIDER (brand/marketing only) ── -->
+<div class="c-slider-section r" id="c-slider-section">
+  <div class="c-slider-wrap">
+    <div class="c-slider" id="c-slider">
+      <!-- populated by JS -->
+    </div>
+    </div>
+    <button class="c-slider-btn" id="sl-prev" aria-label="Previous">←</button>
+    <button class="c-slider-btn" id="sl-next" aria-label="Next">→</button>
+  </div>
+  <div class="c-slider-dots" id="c-dots"></div>
+</div>
+
+<!-- ── VIDEO ──────────────────────────────── -->
+<div class="c-video-section" id="c-video-section" style="display:none">
+  <iframe id="c-video" src="" allow="autoplay; encrypted-media" allowfullscreen title="Case video"></iframe>
+</div>
+
+<!-- ── OUTCOMES & BUSINESS IMPACT ─────────── -->
+<div class="c-ach r" data-screen-label="Outcomes">
+  <div class="c-ach-inner">
+    <span class="c-sec-label">Outcomes &amp;<br>Business Impact</span>
+    <ul class="c-ach-list" id="c-ach-list"></ul>
+  </div>
+</div>
+
+<!-- ── MORE CASES ─────────────────────────── -->
+<div class="c-more" data-screen-label="More Cases">
+  <div class="c-more-hd">
+    <h2 class="c-more-h1">More cases</h2>
+    <div class="c-more-nav">
+      <button class="c-more-btn" id="c-more-prev" aria-label="Previous">←</button>
+      <button class="c-more-btn" id="c-more-next" aria-label="Next">→</button>
+    </div>
+  </div>
+  <div class="c-more-slider" id="c-more-slider">
+    <!-- populated by JS -->
+  </div>
+</div>
+
+<!-- ── CONTACT FORM ──────────────────────── -->
+<section class="c-contact" id="contact" data-screen-label="Contact">
+  <div class="c-contact-inner">
+    <div class="c-contact-left">
+      <h2 class="c-contact-h2 r">Let's build it together.</h2>
+      <p class="c-contact-sub r">Need a stronger brand, better website, consistent marketing design, or AI-powered content? Tell me what you're building and what needs to improve.</p>
+    </div>
+    <div>
+      <form class="c-form r" onsubmit="return false;">
+        <div class="fg">
+          <label for="cf-name">Name</label>
+          <input id="cf-name" type="text" placeholder="Your name">
+        </div>
+        <div class="fg">
+          <label for="cf-co">Company</label>
+          <input id="cf-co" type="text" placeholder="Your company">
+        </div>
+        <div class="fg">
+          <label for="cf-email">Email</label>
+          <input id="cf-email" type="email" placeholder="your@email.com">
+        </div>
+        <div class="fg">
+          <label for="cf-need">What you need</label>
+          <select id="cf-need">
+            <option>Brand Identity</option>
+            <option>Web Design</option>
+            <option>Marketing Design</option>
+            <option>AI Video Production</option>
+            <option>Full Visual System</option>
+            <option>Not sure yet</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label for="cf-msg">Tell me about the project</label>
+          <textarea id="cf-msg" placeholder="Tell me what you're working on, what is not working now, and what you want the project to achieve."></textarea>
+        </div>
+        <div class="form-foot">
+          <button type="submit" class="btn-white">Send project request →</button>
+          <p class="form-note">Direct reply, usually within a day.<br>No agency runaround — you'll hear from me.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ─── CASE DATA ─────────────────────────────── */
+const CASES = {
+  masieriem: {
+    title: 'Latvian Massage Association', client: 'Latvian Massage Association',
+    category: 'Web Design · E-commerce · Education', year: '2026', scope: 'UX, Platform Design, E-commerce',
+    subtitle: 'A complete digital platform redesign for massage professionals, students, and industry members — built around education, certification, member value, and public visibility.',
+    thumbImg: 'images/Latvian Massage.png',
+    cardName: 'Latvian Massage Association', cardCat: 'Web Design · E-commerce · Education', cardDesc: 'Digital platform for education, certification, and member visibility',
+    heroImg1: 'Latvian Massage Association/Hero -1.png',
+    heroImg2: 'Latvian Massage Association/Hero - 2 - LMA.png',
+    task: 'The previous website did not fully communicate the range of opportunities available for massage specialists. Important services — courses, training programs, certificates, professional materials, member benefits, events, and specialist visibility — needed to be presented in a clearer and more structured way.\n\nThe key challenge was to make the website work as more than an informational page. It needed to become a practical digital tool for different user groups: people looking for education, certified professionals, members of the community, and patients searching for specialists.',
+    built: 'The website structure was rebuilt around the real needs of the audience. Instead of presenting all information equally, the new UX prioritizes the main user journeys: discovering courses, accessing professional resources, managing certification, finding useful documents, and increasing visibility through a public specialist map.\n\nThe visual design was refreshed to make the platform feel more modern, reliable, and easier to use. A stronger content hierarchy, clearer cards, improved navigation, and responsive layouts help users quickly understand what they can do on the platform.\n\nThe project included full website redesign and visual refresh, new website structure and information architecture, stronger focus on education, courses, and professional training, improved UX for course discovery and participation, e-commerce functionality for paid courses and trainings, certificate storage and professional achievement visibility, public map functionality for patients searching by specialist and location, access to regulatory documents and professional materials, member discounts and exclusive offers, monthly updates, news, and event communication, and responsive adaptation for desktop and mobile users.',
+    youtubeSrc: 'OF0Di2D-QqI',
+    achievements: [
+      'Transformed a basic information website into a <strong>scalable digital ecosystem</strong> supporting education, community growth, and member retention.',
+      'Built a platform that serves <strong>multiple user groups simultaneously</strong> — learners, certified professionals, members, and patients searching for specialists.',
+      'Delivered a <strong>complete e-commerce and certification flow</strong> — from course discovery to payment, certificate storage, and professional visibility.',
+      'Created a <strong>public specialist map</strong> connecting patients with certified professionals by location — a direct value driver for members.',
+      'Established a <strong>stronger conversion and engagement tool</strong> that attracts new learners, supports existing members, and drives digital services.'
+    ],
+    heroImg: 'masieriem.lv — platform', slider: false
+  },
+  vancinas: {
+    title: 'Vakcīna', client: 'Vakcīna',
+    category: 'Web Design · Healthcare E-commerce', year: '2025', scope: 'UX, Website Redesign, E-commerce',
+    subtitle: 'A healthcare and vaccine distribution platform redesigned into a more structured, professional, and commercially effective digital experience.',
+    thumbImg: 'images/Vakcina.png',
+    cardName: 'Vakcīna', cardCat: 'Web Design · Healthcare E-commerce', cardDesc: 'A trust-focused healthcare and vaccine distribution platform redesigned around clearer structure and professional credibility',
+    heroImg1: 'Vakcina/Hero - 1 - Vkcn.png',
+    heroImg2: 'Vakcina/Hero - 2 - Vkc.png',
+    task: 'In healthcare, users need to understand information quickly and feel confident that the company is reliable. The previous website needed a stronger structure, clearer product presentation, and a smoother path from information search to action.\n\nThe challenge was to create a platform that could support different user needs at the same time: browsing vaccine-related products, understanding available services, finding relevant information, and moving toward purchase or inquiry with less friction.\n\nThe website also had to communicate trust — because in healthcare-related categories, design is not only about usability. It directly affects how credible, professional, and safe the company feels.',
+    built: 'The website was redesigned around clarity, trust, and e-commerce usability. The structure was improved to make the platform easier to navigate, while product and service information was organized in a way that helps users understand available options faster.\n\nSpecial attention was given to content hierarchy, product discovery, responsive behavior, and the overall perception of reliability. The design direction remained clean and professional, avoiding unnecessary visual noise and keeping the focus on clear decision-making.\n\nThe project included website redesign and UX restructuring, improved product and service presentation, clearer navigation and content hierarchy, advanced e-commerce page experience, better product discovery and browsing logic, trust-focused healthcare visual direction, responsive adaptation for mobile and desktop, more intuitive user flows for purchase or inquiry, and stronger structure for future platform growth.',
+    sliderImgs: ['Vakcina/Slider - 1 - Vkcn.png', 'Vakcina/Slider - 2 - Vkcn.png', 'Vakcina/Slider - 3 - Vkcn.png', 'Vakcina/Slider - 4 - Vkcn (1).png'],
+    achievements: [
+      'Delivered a <strong>more trustworthy, structured, and commercially useful</strong> healthcare platform that supports both credibility and conversion.',
+      'Improved <strong>product visibility and user journey clarity</strong> — making it easier for users to find what they need and move toward action.',
+      'Built a <strong>trust-focused visual direction</strong> that strengthens professional perception in a category where design directly affects credibility.',
+      'Created a <strong>stronger digital sales channel</strong> with better e-commerce flows, product discovery, and responsive behavior across all devices.',
+      'Established a <strong>solid foundation for future platform growth</strong> — a scalable structure ready to handle expanding services and content.'
+    ],
+    heroImg: 'Vakcīna — platform', slider: true
+  },
+  cpb: {
+    title: 'CPB.lv', client: 'CPB',
+    category: 'Web Design · B2B · Construction', year: '2025', scope: 'Corporate Website, UX, B2B Design',
+    subtitle: 'Corporate website redesign for a construction company with 10+ years of experience and 500+ completed projects — built to communicate scale, reliability, and full-cycle expertise.',
+    thumbImg: 'images/CPB.png',
+    cardName: 'CPB', cardCat: 'Web Design · B2B · Construction', cardDesc: 'A corporate website redesigned to present expertise, completed projects, and capabilities more clearly',
+    heroImg1: 'CPB/Hero - 1 - CPB.png',
+    heroImg2: 'CPB/Hero - 2 - CPB.png',
+    task: 'For construction companies, a website is often a trust checkpoint for potential clients, partners, and business decision-makers. Visitors need to quickly understand the company\'s experience, project scale, service range, and ability to take responsibility for complex work.\n\nThe previous website needed a clearer structure and stronger presentation of real projects, company credibility, and business value. The challenge was to make the website feel not only visually updated, but also more convincing as a sales and partner communication tool.',
+    built: 'The website structure was updated around credibility and proof. Stronger emphasis was placed on completed projects, company experience, full construction cycle support, and reliable technical solutions.\n\nThe visual design was refreshed to feel more modern, stable, and professional. Large imagery, strong typography, structured content blocks, and trust-based messaging help create a confident first impression and make the company\'s capabilities easier to understand.\n\nThe project included updated website visual design, improved corporate website structure, stronger focus on real completed cases, clearer presentation of company experience and expertise, emphasis on full construction cycle support, partner and B2B-oriented user journey, more trustworthy and professional content hierarchy, and responsive design improvements.',
+    youtubeSrc: 'O6ItLSKtqps',
+    achievements: [
+      'Created a <strong>more professional and trustworthy digital presence</strong> that supports reputation-building, partner acquisition, and client confidence.',
+      'Turned <strong>10+ years of company experience and 500+ completed projects</strong> into a clear and visible sales argument.',
+      'Structured the website around <strong>credibility and proof</strong> — leading partners and decision-makers straight to the evidence they need.',
+      'Delivered a <strong>modern B2B visual standard</strong> with strong typography, large imagery, and trust-based content hierarchy.',
+      'Moved the company from a basic corporate presence to a <strong>stronger credibility and conversion tool</strong> for B2B communication.'
+    ],
+    heroImg: 'CPB.lv — corporate', slider: false
+  },
+  swim: {
+    title: 'Swim.lv', client: 'Swim.lv',
+    category: 'Web Design · Sport E-commerce', year: '2025', scope: 'UX, E-commerce, Automation',
+    subtitle: 'A modern e-commerce platform built to support online sales, lead generation, and automation — turning the website into a practical business tool for a swimming-related business.',
+    thumbImg: 'images/SWIM.png',
+    cardName: 'Swim.lv', cardCat: 'Web Design · Sport E-commerce', cardDesc: 'An e-commerce platform created to support online sales, lead generation, and customer experience',
+    heroImg1: 'Swim/Swim - Hero 1.png',
+    heroImg2: 'Swim/Swim - Hero 2.png',
+    task: 'The business needed more than a standard website. It required a platform that could help customers understand the offer, browse products or services easily, and move toward purchase or inquiry without unnecessary friction.\n\nThe previous digital experience did not fully support growth, automation, or a structured online sales process. The challenge was to create a website that could work both for the customer and for the business: easier to use on the front end, and more efficient to manage on the operational side.\n\nFor a sport and swimming-related business, trust, clarity, and convenience are especially important. Customers need to quickly understand what is available, how to choose the right option, and how to take the next step.',
+    built: 'The website was designed around a clearer e-commerce logic and a more conversion-focused user journey. The structure was improved to make the offer easier to understand, while the interface was built to guide users naturally from browsing to action.\n\nSpecial attention was given to product presentation, responsive design, lead generation points, and automation-ready functionality. The goal was to create a scalable digital platform that could support both current sales needs and future business growth.\n\nThe project included new website design and structure, advanced e-commerce experience, improved product and service presentation, clearer customer journey, lead generation-focused user flows, mobile and desktop responsive design, online sales platform logic, automation-ready website architecture, and UX improvements for easier browsing and decision-making.',
+    youtubeSrc: 'tKlo6NK2qbo',
+    achievements: [
+      'Delivered a <strong>more structured, modern, and commercially useful e-commerce platform</strong> that supports online sales and lead generation.',
+      'Built a <strong>conversion-focused user journey</strong> that guides customers naturally from browsing to action with less friction.',
+      'Created an <strong>automation-ready website architecture</strong> — more efficient to manage on the operational side as the business grows.',
+      'Made the platform <strong>fully responsive across mobile and desktop</strong>, meeting customers where they are and how they browse.',
+      'Established a <strong>stronger digital foundation</strong> — easier to trust, easier to use, and ready to scale with the business.'
+    ],
+    heroImg: 'Swim.lv — platform', slider: false
+  },
+  stainless: {
+    title: 'Stainless', client: 'Stainless',
+    category: 'Brand Identity', year: '2025', scope: 'Visual Identity, Brandbook, System',
+    subtitle: 'A complete visual identity system to support stronger market positioning, better recognition, and more professional communication across digital, print, and sales materials.',
+    thumbImg: 'images/Stainless.png',
+    cardName: 'Stainless', cardCat: 'Brand Identity · Manufacturing', cardDesc: 'Complete visual identity system for modern manufacturing',
+    heroImg1: 'Stainless/Hero - 1 - ST.png',
+    heroImg2: 'Stainless/Hero - 2 - ST.png',
+    task: 'Manufacturing companies often face the same visual problem: many brands look too technical, too conservative, or too similar to competitors. For Stainless, the challenge was to create an identity that could communicate production quality, precision, and trust — while also giving the brand a stronger personality.\n\nThe brand needed to feel industrial and professional, but not cold or forgettable. It had to be bright, recognizable, and flexible enough to work across different business touchpoints.',
+    built: 'A new brand identity was developed around a distinctive visual character, bold brand elements, and a cleaner, more modern design system. The identity was built to make Stainless easier to recognize and easier to use consistently in real business communication.\n\nThe visual system combined manufacturing reliability with a more expressive and contemporary look. This helped the brand stand out while still keeping the serious tone expected in an industrial sector.\n\nThe project included brand identity development, logo and visual system, brand character creation, bright and recognizable visual direction, typography and color system, graphic elements and layout rules, brand book development, brand applications for digital, print, and sales materials, and visual consistency rules for future communication.',
+    sliderImgs: ['Stainless/Slider - 1.png','Stainless/Slider - 2.png','Stainless/Slider - 3.png','Stainless/Slider - 4.png'],
+    achievements: [
+      'Built a manufacturing brand with <strong>stronger recognition and clearer personality</strong> — standing out in a sector where most identities look identical.',
+      'Created a <strong>bright, distinctive visual direction</strong> that feels industrial and professional without being cold or forgettable.',
+      'Delivered a <strong>complete visual system</strong> — logo, typography, colour, graphic elements, layout rules, and a full brand book.',
+      'Built <strong>brand applications across digital, print, and sales materials</strong> — consistent and ready for real business use.',
+      'Positioned Stainless to look <strong>more established and better prepared</strong> for sales, marketing, and long-term brand development.'
+    ],
+    heroImg: 'Stainless — brand visual', slider: true
+  },
+  sls: {
+    title: 'SLS Alliance', client: 'SLS Alliance',
+    category: 'Brand Identity · Global', year: '2026', scope: 'Global Identity, Visual System, Brandbook',
+    thumbImg: 'images/SLS Alliance.png',
+    cardName: 'SLS Alliance', cardCat: 'Brand Identity · Global', cardDesc: 'Global manufacturing &amp; IT brand',
+    subtitle: 'A global-ready brand identity for an international alliance setting smart logistics infrastructure standards across manufacturing, automation, IT, and field operations.',
+    heroImg1: 'SLS/Hero - 1.png',
+    heroImg2: 'SLS/Hero - 2.png',
+    task: 'SLS needed to be perceived not as a local company or a narrow service provider, but as a serious international standard-setting alliance. The brand had to communicate trust, engineering depth, and operational consistency across multiple complex industries — manufacturing, industrial automation, parcel locker networks, robotics, quality systems, IoT, security, field operations, and smart infrastructure development.\n\nThe challenge was to create an identity that could work for both manufacturing and technology audiences — from R&D and production to field operations, quality control, compliance, and infrastructure deployment. The brand needed to feel global, technical, reliable, structured, scalable, and relevant for industrial and logistics decision-makers.',
+    built: 'A new brand identity system was developed around clarity, precision, and global credibility. The visual direction combines a modern technology-driven look with the seriousness expected from industrial infrastructure and manufacturing brands.\n\nEvery element — from logo and typography to layout logic and visual applications — was built to feel consistent, structured, and internationally relevant. The project included brand strategy and visual positioning, global-ready identity system, logo and brand mark development, typography and color system, corporate visual language, brand guideline development, LinkedIn and digital presence adaptation, and identity applications across business and partner touchpoints.',
+    sliderImgs: ['SLS/Slider 1.png','SLS/Slider 2.png','SLS/Slider 3.png','SLS/Slider 4.png','SLS/Slider 5.png','SLS/Slider 6.png','SLS/Slider 7.png','SLS/Slider 8.png','SLS/Slider 9.png','SLS/Slider 10.png'],
+    achievements: [
+      'Established a <strong>credible international brand platform</strong> — SLS now looks and communicates like a serious global standards alliance.',
+      'Unified <strong>manufacturing, IT, automation, logistics, and field operations</strong> under one coherent visual identity.',
+      'Built a <strong>complete visual system</strong> — logo, typography, color, corporate language, guidelines, and digital applications.',
+      'Strengthened <strong>first impressions with partners, investors, and international clients</strong> across every touchpoint.',
+      'Created a <strong>scalable identity</strong> ready to support international expansion, licensing, and new market entry.'
+    ],
+    heroImg: 'SLS — global brand visual', slider: true
+  },
+  social: {
+    title: 'LLAMA BOX', client: 'LLAMA BOX',
+    category: 'Marketing Design · Social', year: '2025–2026', scope: 'SMM Design System, Social Media Visuals',
+    thumbImg: 'images/LLAMA BOX.png',
+    cardName: 'LLAMA BOX', cardCat: 'Marketing Design · SMM · Smart Logistics', cardDesc: 'A consistent social media design system for an AI-first smart locker infrastructure brand',
+    heroImg1: 'LLAMA BOX/Hero - 1 - LB.png',
+    heroImg2: 'LLAMA BOX/Hero 2 - LB.png',
+    subtitle: 'SMM design system and social media visual communication for an AI-first smart locker network infrastructure brand operating in logistics, transportation, and supply chain.',
+    task: 'LLAMA BOX operates in a complex B2B sector where the audience includes logistics providers, postal services, e-commerce platforms, retail enterprises, partners, and infrastructure decision-makers.\n\nFor this type of brand, social media is not only about visual activity. It is a trust-building channel. Every post needs to make the company look more structured, more advanced, and more credible.\n\nThe challenge was to create social media visuals that could follow the brand guidelines, build a consistent presence, explain complex smart locker and automation topics, support B2B credibility, keep the brand recognizable across different content formats, and make the company look active, modern, and scalable.',
+    built: 'A consistent SMM visual system was developed around the LLAMA BOX brand identity. The design approach focused on clarity, strong hierarchy, recognizable colors, and layouts that could work across different types of social media content.\n\nThe banners were designed not as isolated visuals, but as part of a repeatable communication system. This makes it easier for the brand to publish regularly while keeping every post visually connected to the same identity.\n\nThe project included social media banner design, consistent visual system for SMM communication, layout templates for different content types, brand guideline adaptation for social media, visual hierarchy for B2B messaging, design support for product, technology, and infrastructure topics, consistent LinkedIn and social media presence, and a scalable design approach for ongoing posts.',
+    sliderImgs: ['LLAMA BOX/Slider 1 - LB.png', 'LLAMA BOX/Slider 2 - LB.png', 'LLAMA BOX/Slider 3 - LB.png'],
+    achievements: [
+      'Built a <strong>stronger marketing design system</strong> — LLAMA BOX can now present itself consistently across every social media touchpoint.',
+      'Made complex B2B technology <strong>clearer and more visual</strong> — smart locker infrastructure explained through structured, recognizable content.',
+      'Developed a <strong>scalable, repeatable communication system</strong> that makes regular publishing faster without losing visual consistency.',
+      'Strengthened <strong>B2B credibility and partner confidence</strong> through a more structured and professional social media presence.',
+      'Supported <strong>brand awareness, sales communication, and long-term positioning</strong> in the smart logistics infrastructure market.'
+    ],
+    heroImg: 'LLAMA BOX — social grid', slider: true
+  }
+};
+
+/* ─── POPULATE ─────────────────────────── */
+function populate() {
+  const id = new URLSearchParams(window.location.search).get('id') || 'masieriem';
+  const d = CASES[id] || CASES['masieriem'];
+
+  document.title = d.title + ' — Andrey';
+
+  /* Hero */
+  document.getElementById('c-title-full').textContent = d.title;
+  document.getElementById('c-subtitle').textContent = d.subtitle;
+
+  /* Meta bar */
+  document.getElementById('m-client').textContent = d.client;
+  document.getElementById('m-cat').textContent = d.category;
+  document.getElementById('m-year').textContent = d.year;
+
+  /* Hero images */
+  const heroImgs = document.getElementById('c-hero-imgs');
+  if (d.heroImg1 && d.heroImg2) {
+    heroImgs.innerHTML = `
+      <div class="c-hero-img"><img src="${d.heroImg1}" alt="${d.title} hero 1"></div>
+      <div class="c-hero-img c-hero-img-2"><img src="${d.heroImg2}" alt="${d.title} hero 2"></div>`;
+  } else {
+    heroImgs.innerHTML = `
+      <div class="c-hero-img"><div class="ph"><span class="ph-label">${d.b1 || 'image · video 01'}</span></div></div>
+      <div class="c-hero-img"><div class="ph"><span class="ph-label">${d.b2 || 'image · video 02'}</span></div></div>`;
+  }
+
+  /* Text */
+  document.getElementById('c-task').innerHTML = d.task.replace(/\n/g, '<br><br>');
+  document.getElementById('c-built').innerHTML = d.built.replace(/\n/g, '<br><br>');
+
+  /* Visual system slider */
+  const sliderSection = document.getElementById('c-slider-section');
+  const slider = document.getElementById('c-slider');
+  if (d.slider) {
+    sliderSection.style.display = '';
+    if (d.sliderImgs && d.sliderImgs.length) {
+      slider.innerHTML = d.sliderImgs.map(src =>
+        `<div class="c-slide"><img src="${src}" alt=""></div>`
+      ).join('');
+    } else if (d.sliderLabels) {
+      slider.innerHTML = d.sliderLabels.map((lbl, i) => {
+        if (i === 1 || i === 2) return `<div class="c-slide-2col"><div class="ph" style="height:100%;"><span class="ph-label">${lbl}</span></div></div>`;
+        return `<div class="c-slide"><div class="ph"><span class="ph-label">${lbl}</span></div></div>`;
+      }).join('');
+    }
+    initSlider();
+  } else {
+    sliderSection.style.display = 'none';
+  }
+
+  /* Video section */
+  const videoSection = document.getElementById('c-video-section');
+  const videoEl = document.getElementById('c-video');
+  if (d.youtubeSrc) {
+    videoSection.style.display = '';
+    videoEl.src = `https://www.youtube-nocookie.com/embed/${d.youtubeSrc}?enablejsapi=1&mute=1&loop=1&playlist=${d.youtubeSrc}&rel=0&modestbranding=1&autoplay=0`;
+    const postCmd = (cmd) => videoEl.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: cmd, args: [] }), '*');
+    const videoObs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) postCmd('playVideo');
+      else postCmd('pauseVideo');
+    }, { threshold: 0.3 });
+    videoEl.addEventListener('load', () => videoObs.observe(videoSection));
+  } else {
+    videoSection.style.display = 'none';
+  }
+
+  /* Outcomes list */
+  const list = document.getElementById('c-ach-list');
+  list.innerHTML = d.achievements.map((a, i) => `
+    <li class="c-ach-item r">
+      <span class="c-ach-num">${String(i + 1).padStart(2, '0')}</span>
+      <span class="c-ach-text">${a}</span>
+    </li>`).join('');
+
+  /* More cases — all except current */
+  const moreSl = document.getElementById('c-more-slider');
+  moreSl.innerHTML = Object.entries(CASES)
+    .filter(([k]) => k !== id && k !== 'emotions')
+    .map(([caseId, c]) => `
+      <a href="case.html?id=${caseId}" class="c-more-card">
+        <div class="c-more-img">
+          ${c.thumbImg ? `<img src="${c.thumbImg}" alt="${c.cardName || c.title}">` : ''}
+        </div>
+        <div class="c-more-cap">
+          <span class="c-more-cat">${c.cardCat || c.category}</span>
+          <span class="c-more-title">${c.cardName || c.title}</span>
+          ${c.cardDesc ? `<span class="c-more-desc">${c.cardDesc}</span>` : ''}
+        </div>
+      </a>`).join('');
+
+  /* More cases prev/next */
+  const prevBtn = document.getElementById('c-more-prev');
+  const nextBtn = document.getElementById('c-more-next');
+  const cardW = () => moreSl.querySelector('.c-more-card')?.offsetWidth || 400;
+  prevBtn.addEventListener('click', () => moreSl.scrollBy({ left: -cardW(), behavior: 'smooth' }));
+  nextBtn.addEventListener('click', () => moreSl.scrollBy({ left: cardW(), behavior: 'smooth' }));
+
+  /* More cases drag */
+  let mcDown = false, mcStartX, mcScrollL;
+  moreSl.addEventListener('mousedown', e => { mcDown = true; mcStartX = e.pageX - moreSl.offsetLeft; mcScrollL = moreSl.scrollLeft; });
+  moreSl.addEventListener('mouseleave', () => { mcDown = false; });
+  moreSl.addEventListener('mouseup', () => { mcDown = false; });
+  moreSl.addEventListener('mousemove', e => {
+    if (!mcDown) return; e.preventDefault();
+    moreSl.scrollLeft = mcScrollL - (e.pageX - moreSl.offsetLeft - mcStartX);
+  });
+}
+
+/* ─── VISUAL SYSTEM SLIDER (infinite) ──── */
+function initSlider() {
+  const slider = document.getElementById('c-slider');
+  const dotsWrap = document.getElementById('c-dots');
+  const prevBtn = document.getElementById('sl-prev');
+  const nextBtn = document.getElementById('sl-next');
+
+  /* Collect original slides before cloning */
+  const origSlides = [...slider.querySelectorAll('.c-slide, .c-slide-2col')];
+  const total = origSlides.length;
+  if (!total) return;
+
+  /* Clone before + after for infinite loop */
+  origSlides.forEach(s => slider.appendChild(s.cloneNode(true)));
+  origSlides.forEach(s => slider.insertBefore(s.cloneNode(true), slider.firstChild));
+
+  /* All slides including clones */
+  const allSlides = () => [...slider.querySelectorAll('.c-slide, .c-slide-2col')];
+
+  /* Start at first real slide (index = total, after the prepended clones) */
+  let current = total;
+
+  function slideW() { return allSlides()[0]?.offsetWidth || 1; }
+
+  /* Jump without animation (for wrap-around) */
+  function jumpTo(n) {
+    slider.style.scrollBehavior = 'auto';
+    slider.scrollLeft = n * slideW();
+    slider.style.scrollBehavior = '';
+    current = n;
+    updateDots();
+  }
+
+  /* Animated scroll */
+  function goTo(n) {
+    current = n;
+    slider.scrollTo({ left: current * slideW(), behavior: 'smooth' });
+    updateDots();
+  }
+
+  function updateDots() {
+    /* Dots represent real slides only (0..total-1) */
+    const dotIdx = ((current - total) % total + total) % total;
+    dotsWrap.querySelectorAll('.c-dot').forEach((d, i) => d.classList.toggle('active', i === dotIdx));
+  }
+
+  /* Build dots for real slides only */
+  dotsWrap.innerHTML = '';
+  origSlides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'c-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+    dot.addEventListener('click', () => goTo(total + i));
+    dotsWrap.appendChild(dot);
+  });
+
+  /* Init position — no animation */
+  jumpTo(total);
+
+  /* After smooth scroll ends, check if we need to wrap */
+  let scrollTimer;
+  slider.addEventListener('scroll', () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      const sw = slideW();
+      const pos = Math.round(slider.scrollLeft / sw);
+      /* Wrapped into trailing clones → jump back to real */
+      if (pos >= total * 2) jumpTo(pos - total);
+      /* Wrapped into leading clones → jump forward to real */
+      else if (pos < total) jumpTo(pos + total);
+      else { current = pos; updateDots(); }
+    }, 80);
+  }, { passive: true });
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  /* Drag */
+  let isDown = false, startX, scrollL;
+  slider.addEventListener('mousedown', e => { isDown = true; startX = e.pageX - slider.offsetLeft; scrollL = slider.scrollLeft; });
+  slider.addEventListener('mouseleave', () => { isDown = false; });
+  slider.addEventListener('mouseup', () => { isDown = false; });
+  slider.addEventListener('mousemove', e => {
+    if (!isDown) return; e.preventDefault();
+    slider.scrollLeft = scrollL - (e.pageX - slider.offsetLeft - startX);
+  });
+}
+
+/* ─── INIT ─────────────────────────────── */
+populate();
+
+/* Loader */
+const loaderEl = document.getElementById('loader');
+const loaderNum = document.getElementById('loader-num');
+const loaderBarFill = document.getElementById('loader-bar-fill');
+let count = 0;
+const step = 820 / 100;
+const ticker = setInterval(() => {
+  count = Math.min(count + 1, 100);
+  loaderNum.textContent = count;
+  loaderBarFill.style.width = count + '%';
+  if (count >= 100) {
+    clearInterval(ticker);
+    setTimeout(() => {
+      loaderEl.classList.add('done');
+      setTimeout(() => { loaderEl.style.display = 'none'; }, 520);
+    }, 200);
+  }
+}, step);
+
+/* Nav */
+const navEl = document.getElementById('nav');
+window.addEventListener('scroll', () => navEl.classList.toggle('scrolled', window.scrollY > 50), { passive: true });
+
+/* Scroll reveal */
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const siblings = [...(el.parentElement?.querySelectorAll(':scope > .r, :scope > .rl') || [])];
+    const idx = siblings.indexOf(el);
+    el.style.transitionDelay = Math.min(idx * 0.06, 0.25) + 's';
+    el.classList.add('in');
+    obs.unobserve(el);
+  });
+}, { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
+
+document.querySelectorAll('.r, .rl').forEach(el => obs.observe(el));
+
+/* Hero entrance */
+setTimeout(() => {
+  document.querySelectorAll('.c-hero .rl').forEach((el, i) => setTimeout(() => el.classList.add('in'), i * 130));
+  setTimeout(() => {
+    document.querySelectorAll('.c-hero .r').forEach((el, i) => {
+      setTimeout(() => { el.style.transitionDelay = '0s'; el.classList.add('in'); }, i * 100);
+    });
+  }, 200);
+}, 760);
+</script>
+</body>
+</html>
