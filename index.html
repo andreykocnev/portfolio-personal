@@ -136,24 +136,21 @@
       .burger { display: flex; order: -1; }
       .nav-drawer { display: flex; }
       .nav {
-        background: rgba(255,255,255,0.94);
-        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-        border-color: var(--border);
-      }
-      .hero-content { padding-top: 160px; }
-      .hero-photo { overflow: visible; height: auto; }
-      .hero-photo-img { height: 70vw; flex-shrink: 0; object-fit: cover; }
-      .hero-photo-tag {
         position: static;
-        display: block;
-        background: transparent;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
         backdrop-filter: none; -webkit-backdrop-filter: none;
-        border: none; border-top: 1px solid var(--border);
-        color: var(--fg);
-        padding: 14px var(--g);
-        max-width: 100%;
       }
-      .hero-photo-tag strong { color: var(--fg); }
+      .hero-content { padding-top: 40px; }
+      .hero-photo { overflow: visible; height: auto; }
+      .hero-photo-img { height: 70vw; flex-shrink: 0; object-fit: cover; display: block; width: 100%; }
+      .hero-photo-tag { display: none; }
+      .hero-photo-caption {
+        display: flex !important;
+        padding: 12px var(--g);
+        border-bottom: 1px solid var(--border);
+        gap: 6px; align-items: baseline;
+      }
       .nav-drawer ul li a { padding: 16px var(--g); }
       .nav-drawer .drawer-contact { display: none; }
     }
@@ -505,6 +502,10 @@
   <div class="hero-photo">
     <img src="images - personal/img-personal.png" alt="Andrejs Kočņevs" class="hero-photo-img">
     <div class="hero-photo-tag"><strong>Andrejs Kočņevs</strong>Visual Designer · Brand Identity · Web Design · Marketing Design</div>
+    <div class="hero-photo-caption" style="display:none;">
+      <strong style="font-size:13px; font-weight:600;">Andrejs Kočņevs</strong>
+      <span style="font-size:12px; color:var(--muted); letter-spacing:0.04em;">Visual Designer</span>
+    </div>
   </div>
 </section>
 
