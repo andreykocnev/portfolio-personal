@@ -142,15 +142,8 @@
         backdrop-filter: none; -webkit-backdrop-filter: none;
       }
       .hero-content { padding-top: 40px; }
-      .hero-photo { overflow: visible; height: auto; }
-      .hero-photo-img { height: 70vw; flex-shrink: 0; object-fit: cover; display: block; width: 100%; }
-      .hero-photo-tag { display: none; }
-      .hero-photo-caption {
-        display: flex !important;
-        padding: 12px var(--g);
-        border-bottom: 1px solid var(--border);
-        gap: 6px; align-items: baseline;
-      }
+      .hero-photo { height: 70vw; }
+      .hero-caption-name { font-size: 28px; }
       .nav-drawer ul li a { padding: 16px var(--g); }
       .nav-drawer .drawer-contact { display: none; }
     }
@@ -232,6 +225,23 @@
       color: #fff; pointer-events: none; line-height: 1.5;
     }
     .hero-photo-tag strong { font-weight: 600; display: block; font-size: 13px; }
+    .hero-caption {
+      padding: 18px var(--g);
+      border-top: 1px solid var(--border);
+      display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+      background: var(--bg);
+    }
+    .hero-caption-name {
+      font-size: clamp(22px, 3vw, 36px); font-weight: 700;
+      letter-spacing: -0.03em; line-height: 1;
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--fg);
+      white-space: nowrap;
+    }
+    .hero-caption-roles {
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); line-height: 1.6; text-align: right;
+    }
     .witem-no-border { border-bottom: none !important; }
 
     /* ── ABOUT ───────────────────────── */
@@ -499,12 +509,13 @@
       <a href="#portfolio" class="btn">View projects</a>
     </div>
   </div>
-  <div class="hero-photo">
-    <img src="images - personal/img-personal.png" alt="Andrejs Kočņevs" class="hero-photo-img">
-    <div class="hero-photo-tag"><strong>Andrejs Kočņevs</strong>Visual Designer · Brand Identity · Web Design · Marketing Design</div>
-    <div class="hero-photo-caption" style="display:none;">
-      <strong style="font-size:13px; font-weight:600;">Andrejs Kočņevs</strong>
-      <span style="font-size:12px; color:var(--muted); letter-spacing:0.04em;">Visual Designer</span>
+  <div class="hero-photo-wrap" style="display:flex; flex-direction:column;">
+    <div class="hero-photo" style="flex:1;">
+      <img src="images - personal/img-personal.png" alt="Andrejs Kočņevs" class="hero-photo-img">
+    </div>
+    <div class="hero-caption">
+      <span class="hero-caption-name">Andrejs Kočņevs</span>
+      <span class="hero-caption-roles">Brand Identity<br>Web Design<br>Marketing Design</span>
     </div>
   </div>
 </section>
