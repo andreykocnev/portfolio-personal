@@ -155,10 +155,13 @@
     .c-banner .ph { height: 100%; min-height: auto; }
 
     /* ── VIDEO SECTION ── */
-    .c-video-section { overflow: hidden; }
+    .c-video-section { overflow: hidden; position: relative; }
     .c-video-section iframe {
       width: 100%; aspect-ratio: 16/9; display: block;
-      border: none;
+      border: none; pointer-events: none;
+    }
+    .c-video-overlay {
+      position: absolute; inset: 0; z-index: 2;
     }
 
     /* ── VISUAL SYSTEM SLIDER ── */
@@ -398,7 +401,8 @@
 
 <!-- ── VIDEO ──────────────────────────────── -->
 <div class="c-video-section" id="c-video-section" style="display:none">
-  <iframe id="c-video" src="" allow="autoplay; encrypted-media" allowfullscreen title="Case video"></iframe>
+  <div class="c-video-overlay"></div>
+  <iframe id="c-video" src="" allow="autoplay; encrypted-media" title="Case video"></iframe>
 </div>
 
 <!-- ── OUTCOMES & BUSINESS IMPACT ─────────── -->
@@ -613,6 +617,11 @@ const CASES = {
   }
 };
 
+/* encode each path segment so spaces → %20 on GitHub Pages */
+function imgUrl(path) {
+  return path.split('/').map(encodeURIComponent).join('/');
+}
+
 /* ─── POPULATE ─────────────────────────── */
 function populate() {
   const id = new URLSearchParams(window.location.search).get('id') || 'masieriem';
@@ -633,8 +642,8 @@ function populate() {
   const heroImgs = document.getElementById('c-hero-imgs');
   if (d.heroImg1 && d.heroImg2) {
     heroImgs.innerHTML = `
-      <div class="c-hero-img"><img src="${d.heroImg1}" alt="${d.title} hero 1"></div>
-      <div class="c-hero-img c-hero-img-2"><img src="${d.heroImg2}" alt="${d.title} hero 2"></div>`;
+      <div class="c-hero-img"><img src="${imgUrl(d.heroImg1)}" alt="${d.title} hero 1"></div>
+      <div class="c-hero-img c-hero-img-2"><img src="${imgUrl(d.heroImg2)}" alt="${d.title} hero 2"></div>`;
   } else {
     heroImgs.innerHTML = `
       <div class="c-hero-img"><div class="ph"><span class="ph-label">${d.b1 || 'image · video 01'}</span></div></div>
@@ -652,7 +661,7 @@ function populate() {
     sliderSection.style.display = '';
     if (d.sliderImgs && d.sliderImgs.length) {
       slider.innerHTML = d.sliderImgs.map(src =>
-        `<div class="c-slide"><img src="${src}" alt=""></div>`
+        `<div class="c-slide"><img src="${imgUrl(src)}" alt=""></div>`
       ).join('');
     } else if (d.sliderLabels) {
       slider.innerHTML = d.sliderLabels.map((lbl, i) => {
@@ -670,7 +679,7 @@ function populate() {
   const videoEl = document.getElementById('c-video');
   if (d.youtubeSrc) {
     videoSection.style.display = '';
-    videoEl.src = `https://www.youtube-nocookie.com/embed/${d.youtubeSrc}?enablejsapi=1&mute=1&loop=1&playlist=${d.youtubeSrc}&rel=0&modestbranding=1&autoplay=0`;
+    videoEl.src = `https://www.youtube-nocookie.com/embed/${d.youtubeSrc}?enablejsapi=1&mute=1&loop=1&playlist=${d.youtubeSrc}&rel=0&modestbranding=1&controls=0&autoplay=1&disablekb=1&iv_load_policy=3`;
     const postCmd = (cmd) => videoEl.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: cmd, args: [] }), '*');
     const videoObs = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) postCmd('playVideo');
@@ -696,7 +705,7 @@ function populate() {
     .map(([caseId, c]) => `
       <a href="case.html?id=${caseId}" class="c-more-card">
         <div class="c-more-img">
-          ${c.thumbImg ? `<img src="${c.thumbImg}" alt="${c.cardName || c.title}">` : ''}
+          ${c.thumbImg ? `<img src="${imgUrl(c.thumbImg)}" alt="${c.cardName || c.title}">` : ''}
         </div>
         <div class="c-more-cap">
           <span class="c-more-cat">${c.cardCat || c.category}</span>
