@@ -132,7 +132,7 @@
     .nav-drawer .drawer-contact:hover { background: var(--fg); color: var(--bg); }
 
     @media (max-width: 640px) {
-      .nav-links, .nav > .btn-contact { display: none; }
+      .nav-links { display: none; }
       .burger { display: flex; }
       .nav-drawer { display: flex; }
       .nav {
@@ -140,6 +140,15 @@
         backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
         border-color: var(--border);
       }
+      .hero-content {
+        padding-top: 100px;
+      }
+      .hero-photo-tag {
+        max-width: calc(100% - 40px);
+        right: 20px;
+      }
+      .nav-drawer ul li a { padding: 16px var(--g); }
+      .nav-drawer .drawer-contact { margin-top: 20px; }
     }
 
     /* ── REVEAL ──────────────────────── */
@@ -679,7 +688,7 @@
       <p class="contact-sub r">Need a stronger brand, better website, consistent marketing design, or AI-powered content? Tell me what you're building and what needs to improve.</p>
     </div>
     <div class="contact-right">
-      <form class="form r" onsubmit="return false;">
+      <form class="form r" id="contact-form">
         <div class="fg">
           <label for="f-name">Name</label>
           <input id="f-name" type="text" placeholder="Your name">
@@ -708,8 +717,8 @@
           <textarea id="f-msg" placeholder="Tell me what you're working on, what is not working now, and what you want the project to achieve."></textarea>
         </div>
         <div class="form-foot">
-          <button type="submit" class="btn-white">Send project request →</button>
-          <p class="form-note">Direct reply, usually within a day.<br>No agency runaround — you'll hear from me.</p>
+          <button type="submit" class="btn-white" id="f-submit">Send project request →</button>
+          <p class="form-note" id="f-note">Direct reply, usually within a day.<br>No agency runaround — you'll hear from me.</p>
         </div>
       </form>
     </div>
@@ -812,6 +821,50 @@
   });
 
   updatePortfolio('all');
+
+  /* ── CONTACT FORM → TELEGRAM ── */
+  const TG_TOKEN = '8937514019:AAHz61zhmjaO80CVtoInBaHp-qA2lS-e9dE';
+  const TG_CHAT  = '-5556395463';
+
+  document.getElementById('contact-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn  = document.getElementById('f-submit');
+    const note = document.getElementById('f-note');
+    const name  = document.getElementById('f-name').value.trim();
+    const co    = document.getElementById('f-co').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    const need  = document.getElementById('f-need').value;
+    const msg   = document.getElementById('f-msg').value.trim();
+
+    if (!name || !email) {
+      note.textContent = 'Please fill in your name and email.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    const text = `📩 New project request\n\n👤 ${name}${co ? ' · ' + co : ''}\n📧 ${email}\n🎯 ${need}\n\n💬 ${msg || '—'}`;
+
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: TG_CHAT, text, parse_mode: 'HTML' })
+      });
+      if (res.ok) {
+        btn.textContent = 'Sent ✓';
+        note.textContent = 'Thanks! I’ll get back to you within a day.';
+        e.target.reset();
+      } else {
+        throw new Error();
+      }
+    } catch {
+      btn.disabled = false;
+      btn.textContent = 'Send project request →';
+      note.textContent = 'Something went wrong — try again or email me directly.';
+    }
+  });
 </script>
 </body>
 </html>

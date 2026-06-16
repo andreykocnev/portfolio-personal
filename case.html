@@ -70,6 +70,62 @@
     }
     .nav-right a:hover { opacity: 0.4; }
 
+    /* ── BURGER (case pages) ── */
+    .burger {
+      display: none; flex-direction: column; justify-content: center;
+      gap: 5px; width: 36px; height: 36px; cursor: pointer;
+      background: none; border: none; padding: 0; z-index: 201;
+    }
+    .burger span {
+      display: block; width: 22px; height: 1.5px; background: var(--fg);
+      transition: transform 0.35s var(--ease), opacity 0.25s ease, width 0.3s ease;
+      transform-origin: center;
+    }
+    .burger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .burger.open span:nth-child(2) { opacity: 0; width: 0; }
+    .burger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    .nav-drawer {
+      display: none; position: fixed; inset: 0;
+      background: var(--bg); z-index: 199;
+      flex-direction: column; justify-content: center; align-items: center;
+      opacity: 0; transition: opacity 0.35s ease; pointer-events: none;
+    }
+    .nav-drawer.open { opacity: 1; pointer-events: all; }
+    .nav-drawer ul {
+      list-style: none; display: flex; flex-direction: column;
+      align-items: center; gap: 0; width: 100%;
+    }
+    .nav-drawer ul li { width: 100%; border-bottom: 1px solid var(--border); text-align: center; }
+    .nav-drawer ul li:first-child { border-top: 1px solid var(--border); }
+    .nav-drawer ul li a {
+      display: block; padding: 16px var(--g);
+      font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--fg); text-decoration: none; transition: opacity 0.2s;
+    }
+    .nav-drawer ul li a:hover { opacity: 0.4; }
+    .nav-drawer .drawer-contact {
+      margin-top: 20px;
+      font-family: var(--font); font-size: 12px; font-weight: 500;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      text-decoration: none; padding: 14px 32px; white-space: nowrap;
+      border: 1px solid var(--fg); color: var(--fg); background: transparent;
+      transition: background 0.22s, color 0.22s; display: inline-block;
+    }
+    .nav-drawer .drawer-contact:hover { background: var(--fg); color: var(--bg); }
+
+    @media (max-width: 640px) {
+      .nav-right { display: none; }
+      .burger { display: flex; }
+      .nav-drawer { display: flex; }
+      .nav {
+        background: rgba(255,255,255,0.94);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border-color: var(--border);
+      }
+      .c-hero { padding-top: 80px; }
+    }
+
     /* ── REVEAL ── */
     .r {
       opacity: 0; transform: translateY(24px);
@@ -352,7 +408,19 @@
     <li><a href="index.html#about">About</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
+  <button class="burger" id="burger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE DRAWER -->
+<div class="nav-drawer" id="nav-drawer">
+  <ul>
+    <li><a href="index.html#portfolio" class="drawer-link">← All work</a></li>
+    <li><a href="index.html#about" class="drawer-link">About</a></li>
+  </ul>
+  <a href="#contact" class="drawer-contact drawer-link">Contact</a>
+</div>
 
 <!-- ── HERO ─────────────────────────────── -->
 <section class="c-hero" data-screen-label="Hero">
@@ -435,7 +503,7 @@
       <p class="c-contact-sub r">Need a stronger brand, better website, consistent marketing design, or AI-powered content? Tell me what you're building and what needs to improve.</p>
     </div>
     <div>
-      <form class="c-form r" onsubmit="return false;">
+      <form class="c-form r" id="cf-form">
         <div class="fg">
           <label for="cf-name">Name</label>
           <input id="cf-name" type="text" placeholder="Your name">
@@ -464,8 +532,8 @@
           <textarea id="cf-msg" placeholder="Tell me what you're working on, what is not working now, and what you want the project to achieve."></textarea>
         </div>
         <div class="form-foot">
-          <button type="submit" class="btn-white">Send project request →</button>
-          <p class="form-note">Direct reply, usually within a day.<br>No agency runaround — you'll hear from me.</p>
+          <button type="submit" class="btn-white" id="cf-submit">Send project request →</button>
+          <p class="form-note" id="cf-note">Direct reply, usually within a day.<br>No agency runaround — you'll hear from me.</p>
         </div>
       </form>
     </div>
@@ -846,6 +914,22 @@ const ticker = setInterval(() => {
 const navEl = document.getElementById('nav');
 window.addEventListener('scroll', () => navEl.classList.toggle('scrolled', window.scrollY > 50), { passive: true });
 
+/* Burger */
+const burger = document.getElementById('burger');
+const drawer = document.getElementById('nav-drawer');
+burger.addEventListener('click', () => {
+  const open = burger.classList.toggle('open');
+  drawer.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+});
+document.querySelectorAll('.drawer-link').forEach(link => {
+  link.addEventListener('click', () => {
+    burger.classList.remove('open');
+    drawer.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+});
+
 /* Scroll reveal */
 const obs = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
@@ -870,6 +954,50 @@ setTimeout(() => {
     });
   }, 200);
 }, 760);
+
+/* ── CONTACT FORM → TELEGRAM ── */
+const TG_TOKEN = '8937514019:AAHz61zhmjaO80CVtoInBaHp-qA2lS-e9dE';
+const TG_CHAT  = '-5556395463';
+
+document.getElementById('cf-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn  = document.getElementById('cf-submit');
+  const note = document.getElementById('cf-note');
+  const name  = document.getElementById('cf-name').value.trim();
+  const co    = document.getElementById('cf-co').value.trim();
+  const email = document.getElementById('cf-email').value.trim();
+  const need  = document.getElementById('cf-need').value;
+  const msg   = document.getElementById('cf-msg').value.trim();
+
+  if (!name || !email) {
+    note.textContent = 'Please fill in your name and email.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const text = `📩 New project request\n\n👤 ${name}${co ? ' · ' + co : ''}\n📧 ${email}\n🎯 ${need}\n\n💬 ${msg || '—'}`;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: TG_CHAT, text })
+    });
+    if (res.ok) {
+      btn.textContent = 'Sent ✓';
+      note.textContent = 'Thanks! I’ll get back to you within a day.';
+      e.target.reset();
+    } else {
+      throw new Error();
+    }
+  } catch {
+    btn.disabled = false;
+    btn.textContent = 'Send project request →';
+    note.textContent = 'Something went wrong — try again or email me directly.';
+  }
+});
 </script>
 </body>
 </html>
